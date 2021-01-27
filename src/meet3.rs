@@ -48,43 +48,35 @@ fn process_db(lines_vec: Vec<&str>, monster_count:usize, capability: usize){
         let rating = line_vec[4];
         total_rating += rating.parse::<usize>().unwrap();
 
-        let mut new_monster = Monster::new(line_vec[0].to_string(), line_vec[1].parse::<i32>().unwrap(),line_vec[2].parse::<i32>().unwrap(),line_vec[3].parse::<i32>().unwrap(),line_vec[4].parse::<i32>().unwrap());
+        let new_monster = Monster::new(line_vec[0].to_string(), line_vec[1].parse::<i32>().unwrap(),line_vec[2].parse::<i32>().unwrap(),line_vec[3].parse::<i32>().unwrap(),line_vec[4].parse::<i32>().unwrap());
         monsters.push(new_monster);
     }
     monsters.sort_by_key(|m| m.init);
   
 
-    let mut index_to_remove = vec![];
+   
     let mut num_occurrence = HashMap::new();
-    for i in 1..monsters.len() {
-        let j = i - 1;
-        if monsters[j].name == monsters[i].name {
-            monsters[i].challenge += monsters[j].challenge;
-            index_to_remove.push(j);
-
-            let num = num_occurrence.entry(monsters[j].name.to_string()).or_insert(1);
-            *num += 1;
-        }
+    for i in 0..monsters.len() {
+        let num = num_occurrence.entry(monsters[i].name.to_string()).or_insert(0);
+        *num += 1; 
     }
-    // println!("  monsters: {:?} ", monsters);
-    // println!("  dic: {:?} ", num_occurrence);
 
-    let mut dup = vec![];
-    for m in monsters {
-        if num_occurrence.contains_key(&m.name) {
-            if dup.contains(&m.name) {
+    let mut monster_ignore = vec![]; // once the first occurence is printed, add that monster to this vector
+    for i in 0..monsters.len() {
+        let number = num_occurrence.get(&monsters[i].name).unwrap();
+
+        if *number>1 {
+            if monster_ignore.contains(&monsters[i].name) {
                 continue;
             }
-            else {
-                let number = num_occurrence.get(&m.name).unwrap();
-               
-                println!("  {:?} {:?}: init:{:?} armour:{:?} attack:{:?} challenge:{:?}", number, m.name, m.init, m.armour, m.attack, m.challenge*number);
-                dup.push(m.name);
-            }
-            
+            else {      
+                println!("  {:?} {:?}: init:{:?} armour:{:?} attack:{:?} challenge:{:?}", number, monsters[i].name, monsters[i].init, monsters[i].armour, monsters[i].attack, monsters[i].challenge*number);
+                monster_ignore.push(monsters[i].name.to_string());
+            }        
         }
         else{
-            println!("  {:?}: init:{:?} armour:{:?} attack:{:?} challenge:{:?}", m.name, m.init, m.armour, m.attack, m.challenge);
+            println!("  {:?}: init:{:?} armour:{:?} attack:{:?} challenge:{:?}", monsters[i].name, monsters[i].init, monsters[i].armour, monsters[i].attack, monsters[i].challenge);
+            continue;
         }
     }
     println!("  total challenge rating: {:?} ", total_rating);
